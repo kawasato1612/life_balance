@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人生バランス診断</title>
+  <style>
+    :root {
+      --bg: #fffaf4;
+      --card: #ffffff;
+      --text: #333333;
+      --muted: #777777;
+      --accent: #d9a86c;
+      --accent-dark: #b98243;
+      --line: #eadfd2;
+      --soft: #f7efe5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+      background: linear-gradient(180deg, #fffaf4 0%, #f8efe6 100%);
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      letter-spacing: 0.05em;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin: 0 auto;
+      max-width: 720px;
+      font-size: 15px;
+    }
+
+    .score-guide, .section, .result-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(140, 93, 45, 0.06);
+    }
+
+    .score-guide {
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+
+    .score-guide strong { color: var(--accent-dark); }
+
+    .section {
+      border-radius: 22px;
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .category-score {
+      background: var(--soft);
+      color: var(--accent-dark);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+
+    .question {
+      padding: 16px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .question:last-child { border-bottom: none; }
+
+    .question p {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 6px;
+    }
+
+    .options label {
+      display: block;
+      cursor: pointer;
+    }
+
+    .options input { display: none; }
+
+    .options span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 14px;
+      transition: all 0.15s ease;
+    }
+
+    .options input:checked + span {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .result-box {
+      border-radius: 24px;
+      padding: 20px;
+      margin-top: 28px;
+    }
+
+    .result-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .total-score {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--accent-dark);
+    }
+
+    .result-message {
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .bars {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 56px;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .bar-bg {
+      height: 12px;
+      background: var(--soft);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      transition: 0.15s ease;
+    }
+
+    button:hover { background: var(--accent-dark); }
+
+    button.secondary {
+      background: var(--soft);
+      color: var(--accent-dark);
+    }
+
+    .note-area { margin-top: 18px; }
+
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      background: #fff;
+    }
+
+    @media (max-width: 720px) {
+      h1 { font-size: 25px; }
+      .section { padding: 18px; }
+      .section-title {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .options { grid-template-columns: repeat(5, 1fr); }
+      .options span { min-height: 42px; }
+      .bar-row { grid-template-columns: 105px 1fr 50px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>人生バランス診断</h1>
+      <p class="lead">8つの項目について、今の自分の感覚に近い点数を選んでください。各項目5問、1〜10点で回答すると、項目別スコアと総合スコアが自動で表示されます。</p>
+    </header>
+
+    <div class="score-guide">
+      <strong>点数の目安：</strong>
+      1＝ほとんど感じない ／ 5＝どちらとも言えない ／ 10＝とても強く感じる
+    </div>
+
+    <form id="diagnosisForm">
+      <section class="section" data-category="wisdom">
+        <div class="section-title"><h2>① 知恵・叡智</h2><div class="category-score"><span id="score-wisdom">-</span> / 10</div></div>
+        <div class="question"><p>1. 自分には心から学びたい知識がある</p><div class="options" data-name="wisdom-1"></div></div>
+        <div class="question"><p>2. 自分はこれに詳しいと言えるものがある</p><div class="options" data-name="wisdom-2"></div></div>
+        <div class="question"><p>3. 自分の知識はここが他と違うと言い表せる</p><div class="options" data-name="wisdom-3"></div></div>
+        <div class="question"><p>4. 自分の知識や学びは他の人のためになる</p><div class="options" data-name="wisdom-4"></div></div>
+        <div class="question"><p>5. 自分の知識や学びは活気あるものである</p><div class="options" data-name="wisdom-5"></div></div>
+      </section>
+
+      <section class="section" data-category="mission">
+        <div class="section-title"><h2>② 使命・目的</h2><div class="category-score"><span id="score-mission">-</span> / 10</div></div>
+        <div class="question"><p>1. このために生きているという使命や目的がある</p><div class="options" data-name="mission-1"></div></div>
+        <div class="question"><p>2. その使命や目的を考えるだけでワクワクする</p><div class="options" data-name="mission-2"></div></div>
+        <div class="question"><p>3. その目的に沿って生きている時に他の人にもエネルギーを与えている</p><div class="options" data-name="mission-3"></div></div>
+        <div class="question"><p>4. その使命や目的は独自性がある</p><div class="options" data-name="mission-4"></div></div>
+        <div class="question"><p>5. その目的に沿って生きているとき幸せである</p><div class="options" data-name="mission-5"></div></div>
+      </section>
+
+      <section class="section" data-category="relationship">
+        <div class="section-title"><h2>③ 人間関係</h2><div class="category-score"><span id="score-relationship">-</span> / 10</div></div>
+        <div class="question"><p>1. 自分は良い人間関係を生きている</p><div class="options" data-name="relationship-1"></div></div>
+        <div class="question"><p>2. 自分の人間関係に愛を感じる</p><div class="options" data-name="relationship-2"></div></div>
+        <div class="question"><p>3. 自分の人間関係に感謝を感じる</p><div class="options" data-name="relationship-3"></div></div>
+        <div class="question"><p>4. 自分の人間関係に安らぎを感じる</p><div class="options" data-name="relationship-4"></div></div>
+        <div class="question"><p>5. 自分の人間関係に喜びを感じる</p><div class="options" data-name="relationship-5"></div></div>
+      </section>
+
+      <section class="section" data-category="children">
+        <div class="section-title"><h2>④ 子孫</h2><div class="category-score"><span id="score-children">-</span> / 10</div></div>
+        <div class="question"><p>1. 感情的に子供とつながる時間がある</p><div class="options" data-name="children-1"></div></div>
+        <div class="question"><p>2. 子供に対して癒しを与えている</p><div class="options" data-name="children-2"></div></div>
+        <div class="question"><p>3. 子供と喜びあえる時間がある</p><div class="options" data-name="children-3"></div></div>
+        <div class="question"><p>4. 子供との愛を感じる時間がある</p><div class="options" data-name="children-4"></div></div>
+        <div class="question"><p>5. 子供からの学びがある</p><div class="options" data-name="children-5"></div></div>
+      </section>
+
+      <section class="section" data-category="money">
+        <div class="section-title"><h2>⑤ 資産・お金</h2><div class="category-score"><span id="score-money">-</span> / 10</div></div>
+        <div class="question"><p>1. 自分が好きなことをする余裕がある</p><div class="options" data-name="money-1"></div></div>
+        <div class="question"><p>2. お金に対して不安がない</p><div class="options" data-name="money-2"></div></div>
+        <div class="question"><p>3. 自分が欲しい分のお金を産んでくれる資産やビジネスを持っている</p><div class="options" data-name="money-3"></div></div>
+        <div class="question"><p>4. 自分はまだまだ成長できると思う</p><div class="options" data-name="money-4"></div></div>
+        <div class="question"><p>5. チャンスや成長の予感がする</p><div class="options" data-name="money-5"></div></div>
+      </section>
+
+      <section class="section" data-category="health">
+        <div class="section-title"><h2>⑥ 美・健康</h2><div class="category-score"><span id="score-health">-</span> / 10</div></div>
+        <div class="question"><p>1. 自分の健康に自信がある</p><div class="options" data-name="health-1"></div></div>
+        <div class="question"><p>2. 自分の外見は清潔感がある</p><div class="options" data-name="health-2"></div></div>
+        <div class="question"><p>3. 日常的に健康に対して対策している</p><div class="options" data-name="health-3"></div></div>
+        <div class="question"><p>4. 活力が内側から出ていると感じる</p><div class="options" data-name="health-4"></div></div>
+        <div class="question"><p>5. 自分を年齢より若く感じる</p><div class="options" data-name="health-5"></div></div>
+      </section>
+
+      <section class="section" data-category="challenge">
+        <div class="section-title"><h2>⑦ チャレンジ</h2><div class="category-score"><span id="score-challenge">-</span> / 10</div></div>
+        <div class="question"><p>1. 自分の安心領域から意識的に出るようにしている</p><div class="options" data-name="challenge-1"></div></div>
+        <div class="question"><p>2. やりたいと思うことを持っている</p><div class="options" data-name="challenge-2"></div></div>
+        <div class="question"><p>3. これから1ヶ月以内にチャレンジすることが明確である</p><div class="options" data-name="challenge-3"></div></div>
+        <div class="question"><p>4. そのチャレンジはワクワクするものである</p><div class="options" data-name="challenge-4"></div></div>
+        <div class="question"><p>5. そのチャレンジは周りに伝わるものである</p><div class="options" data-name="challenge-5"></div></div>
+      </section>
+
+      <section class="section" data-category="spirituality">
+        <div class="section-title"><h2>⑧ スピリチュアリティ・貢献</h2><div class="category-score"><span id="score-spirituality">-</span> / 10</div></div>
+        <div class="question"><p>1. 自分は精神的にいつも穏やかである</p><div class="options" data-name="spirituality-1"></div></div>
+        <div class="question"><p>2. 自分はいつも癒されていると感じている</p><div class="options" data-name="spirituality-2"></div></div>
+        <div class="question"><p>3. 自分はいつも愛を感じている</p><div class="options" data-name="spirituality-3"></div></div>
+        <div class="question"><p>4. 自分は幸福だと感じている</p><div class="options" data-name="spirituality-4"></div></div>
+        <div class="question"><p>5. 自分だけではなく他の人のためにも生きていると思う</p><div class="options" data-name="spirituality-5"></div></div>
+      </section>
+    </form>
+
+    <div class="section note-area">
+      <h2>今日の気づき・メモ</h2>
+      <textarea id="memo" placeholder="今日感じたこと、伸ばしたい項目、次の一歩などを自由に書いてください。"></textarea>
+    </div>
+
+    <div class="result-box">
+      <div class="result-main">
+        <div>
+          <strong>総合スコア</strong>
+          <div class="result-message" id="resultMessage">すべての質問に回答すると、結果が表示されます。</div>
+        </div>
+        <div class="total-score"><span id="totalScore">-</span> / 10</div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="actions">
+        <button type="button" onclick="copyResult()">結果をコピー</button>
+        <button type="button" class="secondary" onclick="resetForm()">リセット</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const categories = [
+      { id: "wisdom", title: "① 知恵・叡智", short: "知恵" },
+      { id: "mission", title: "② 使命・目的", short: "使命" },
+      { id: "relationship", title: "③ 人間関係", short: "人間関係" },
+      { id: "children", title: "④ 子孫", short: "子孫" },
+      { id: "money", title: "⑤ 資産・お金", short: "資産・お金" },
+      { id: "health", title: "⑥ 美・健康", short: "美・健康" },
+      { id: "challenge", title: "⑦ チャレンジ", short: "チャレンジ" },
+      { id: "spirituality", title: "⑧ スピリチュアリティ・貢献", short: "精神・貢献" }
+    ];
+
+    function createOptions() {
+      document.querySelectorAll(".options").forEach(function(optionBox) {
+        const name = optionBox.dataset.name;
+        let html = "";
+        for (let i = 1; i <= 10; i++) {
+          html += '<label><input type="radio" name="' + name + '" value="' + i + '"><span>' + i + '</span></label>';
+        }
+        optionBox.innerHTML = html;
+      });
+    }
+
+    function createBars() {
+      const bars = document.getElementById("bars");
+      bars.innerHTML = "";
+      categories.forEach(function(category) {
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = '<div>' + category.short + '</div><div class="bar-bg"><div class="bar-fill" id="bar-' + category.id + '"></div></div><div><span id="bar-score-' + category.id + '">-</span></div>';
+        bars.appendChild(row);
+      });
+    }
+
+    function calculateScores() {
+      let total = 0;
+      let completedCategories = 0;
+      let answeredCount = 0;
+      const totalQuestions = categories.length * 5;
+
+      categories.forEach(function(category) {
+        let sum = 0;
+        let count = 0;
+
+        for (let i = 1; i <= 5; i++) {
+          const selected = document.querySelector('input[name="' + category.id + '-' + i + '"]:checked');
+          if (selected) {
+            sum += Number(selected.value);
+            count += 1;
+            answeredCount += 1;
+          }
+        }
+
+        const scoreEl = document.getElementById("score-" + category.id);
+        const barScoreEl = document.getElementById("bar-score-" + category.id);
+        const barEl = document.getElementById("bar-" + category.id);
+
+        if (count === 5) {
+          const avg = sum / 5;
+          total += avg;
+          completedCategories += 1;
+          scoreEl.textContent = avg.toFixed(1);
+          barScoreEl.textContent = avg.toFixed(1);
+          barEl.style.width = ((avg / 10) * 100) + "%";
+        } else {
+          scoreEl.textContent = "-";
+          barScoreEl.textContent = "-";
+          barEl.style.width = "0%";
+        }
+      });
+
+      const totalScoreEl = document.getElementById("totalScore");
+      const resultMessageEl = document.getElementById("resultMessage");
+
+      if (completedCategories === categories.length) {
+        const totalAvg = total / categories.length;
+        totalScoreEl.textContent = totalAvg.toFixed(1);
+        resultMessageEl.textContent = getMessage(totalAvg);
+      } else {
+        totalScoreEl.textContent = "-";
+        resultMessageEl.textContent = answeredCount + " / " + totalQuestions + " 問回答済み。すべて回答すると総合スコアが表示されます。";
+      }
+    }
+
+    function getMessage(score) {
+      if (score >= 9.0) return "全体的にかなり満たされ、エネルギーが高い状態です。今の流れを大切に育てていきましょう。";
+      if (score >= 7.5) return "良いバランスです。低めの項目を少し整えると、さらに充実感が高まりそうです。";
+      if (score >= 5.5) return "整っている部分と、ケアが必要な部分が混在しています。今月は1項目だけ重点的に見てみましょう。";
+      if (score >= 3.5) return "少し疲れや偏りが出ているかもしれません。まずは自分を責めず、回復しやすい領域から整えましょう。";
+      return "今はかなりエネルギーを消耗している可能性があります。小さな安心や休息を最優先にしてみてください。";
+    }
+
+    function copyResult() {
+      const date = new Date().toLocaleDateString("ja-JP");
+      const lines = ["人生バランス診断 結果", "日付：" + date, ""];
+
+      categories.forEach(function(category) {
+        const score = document.getElementById("score-" + category.id).textContent;
+        lines.push(category.title + "：" + score + " / 10");
+      });
+
+      lines.push("");
+      lines.push("総合スコア：" + document.getElementById("totalScore").textContent + " / 10");
+      lines.push("メモ：" + (document.getElementById("memo").value || ""));
+
+      navigator.clipboard.writeText(lines.join("\n")).then(function() {
+        alert("結果をコピーしました。Notionやメモアプリに貼り付けできます。");
+      });
+    }
+
+    function resetForm() {
+      if (!confirm("入力内容をリセットしますか？")) return;
+      document.getElementById("diagnosisForm").reset();
+      document.getElementById("memo").value = "";
+      calculateScores();
+    }
+
+    createOptions();
+    createBars();
+    document.addEventListener("change", calculateScores);
+    calculateScores();
+  </script>
+</body>
+</html>
